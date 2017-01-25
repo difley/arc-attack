@@ -38,30 +38,38 @@ def compute_random_radius():
     return radius
 
 
+def compute_point_on_circle(x_center, y_center, radius, angle, y_radius_sign=1.):
+    x_coordinate = x_center + radius*scipy.cos(angle)
+    y_coordinate = y_center + y_radius_sign*radius*scipy.sin(angle)
+    return x_coordinate, y_coordinate
+
+
 def compute_next_arc(state):
-        #sign randomly is 1 or -1.  if sign == 1,
-        #next circle's center is on convex side of
-        #current circle, else next center is
-        #on concave side of current circle
-        sign = get_random_plus_or_minus_one()
-        direction = -state['direction']*sign
-        #new start_angle is on opposite side of circle from previous start_angle
-        if (sign == 1):
-            angle_start = state['end_angle'] + scipy.pi
-        else:
-            angle_start = state['end_angle']
-        angle_start = normalize_angle(angle_start)
-        old_radius = state['radius']
-        new_radius = compute_random_radius()
-        new_x_center = state['x_center'] + (sign*new_radius + old_radius)*scipy.cos(state['end_angle'])
-        new_y_center = state['y_center'] + (sign*new_radius + old_radius)*scipy.sin(state['end_angle'])
-        angle_end = angle_start + scipy.random.random()*2.*scipy.pi
-        return {'x_center': new_x_center,
-                'y_center': new_y_center,
-                'radius': new_radius,
-                'direction': direction,
-                'start_angle': angle_start,
-                'end_angle': angle_end}
+    #sign randomly is 1 or -1.  if sign == 1,
+    #next circle's center is on convex side of
+    #current circle, else next center is
+    #on concave side of current circle
+    sign = get_random_plus_or_minus_one()
+    direction = -state['direction']*sign
+    #new start_angle is on opposite side of circle from previous start_angle
+    if (sign == 1):
+        angle_start = state['end_angle'] + scipy.pi
+    else:
+        angle_start = state['end_angle']
+    angle_start = normalize_angle(angle_start)
+    old_radius = state['radius']
+    new_radius = compute_random_radius()
+    new_x_center, new_y_center = compute_point_on_circle(state['x_center'],
+                                                         state['y_center'],
+                                                         sign*new_radius + old_radius,
+                                                         state['end_angle'])
+    angle_end = angle_start + scipy.random.random()*2.*scipy.pi
+    return {'x_center': new_x_center,
+            'y_center': new_y_center,
+            'radius': new_radius,
+            'direction': direction,
+            'start_angle': angle_start,
+            'end_angle': angle_end}
 
 
 #return arc points specified by present state
@@ -82,13 +90,17 @@ def compute_directed_angle(state):
     return directed_angle
 
 
-def generate_points_along_arc(state, point_density, tf):
-    np = int(abs(tf)*point_density)
-    for i in range(np):
-        ang = (tf*float(i)/float(np) + state['start_angle'])
+def generate_points_along_arc(state, point_density, directed_angle):
+    point_count = int(abs(directed_angle)*point_density)
+    for i in range(point_count):
+        angle = (directed_angle*float(i)/float(point_count) + state['start_angle'])
+        x_coordinate, y_coordinate = compute_point_on_circle(state['x_center'],
+                                                             state['y_center'],
+                                                             state['radius'],
+                                                             angle)
         print("{x_coordinate} {y_coordinate}".format(
-                x_coordinate=state['radius']*scipy.cos(ang) + state['x_center'],
-                y_coordinate=state['radius']*scipy.sin(ang) + state['y_center']))
+                x_coordinate=x_coordinate,
+                y_coordinate=y_coordinate))
 
 
 def compute_next_line():
@@ -101,19 +113,29 @@ def line(state, point_density=4):
     start_x = state['radius']*scipy.cos(state['end_angle']) + state['x_center']
     start_y = state['radius']*scipy.sin(state['end_angle']) + state['y_center']
     generate_points_along_line(state, point_density, start_x, start_y)
-    return {'x_center': state['x_center'] -
-            state['direction']*state['distance']*scipy.sin(state['end_angle']),
-            'y_center': state['y_center'] +
-            state['direction']*state['distance']*scipy.cos(state['end_angle'])}
+    end_y, end_x = compute_point_on_circle(state['y_center'],
+                                    state['x_center'],
+                                    state['direction']*state['distance'],
+                                    state['end_angle'],
+                                    y_radius_sign=-1.
+                                    )
+    return {'x_center': end_x,
+            'y_center': end_y}
 
 
 def generate_points_along_line(state, point_density, start_x, start_y):
-    np = int(state['distance']*point_density)
-    for i in range(np):
-        iteration_scale_factor = state['direction']*state['distance']*float(i)/float(np)
+    point_count = int(state['distance']*point_density)
+    for i in range(point_count):
+        iteration_scale_factor = state['direction']*state['distance']*float(i)/float(point_count)
+        y_coordinate, x_coordinate = compute_point_on_circle(start_y,
+                                                             start_x,
+                                                             iteration_scale_factor,
+                                                             state['end_angle'],
+                                                             y_radius_sign=-1.)
         print("{x_coordinate} {y_coordinate}".format(
-            x_coordinate=start_x - iteration_scale_factor*scipy.sin(state['end_angle']),
-            y_coordinate=start_y + iteration_scale_factor*scipy.cos(state['end_angle'])))
+            x_coordinate=x_coordinate,
+            y_coordinate=y_coordinate
+        ))
 
 
 def main():
