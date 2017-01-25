@@ -1,102 +1,124 @@
-#!/usr/bin/env python
-
+#!/usr/bin/env python3
 import scipy
 import sys
 
 
-def aa():
+def curve_generator():
+    iteration_count = 20
     state = {'x_center': 0.,
              'y_center': 0.,
              'direction': 1,
              'start_angle': 0.,
              'end_angle': 9.*scipy.pi/5.,
-             'radius': scipy.random.random()}
-    cx = 0.
-    cy = 0.
-    direction = 1
-    thetai = 0.
-    r = scipy.random.random()
-    thetaf = thetai + 9.*scipy.pi/5.
-    dist = 1.
-    for j in range(1000):
-        arc(cx,
-            cy,
-            r,
-            direction,
-            thetai,
-            thetaf)
-        state['x_center'], state['y_center'] = line(cx,
-                     cy,
-                     r,
-                     direction,
-                     thetaf,
-                     dist)
-        dist = nextline()
-        cx, cy, r, direction, thetai, thetaf = nextarc(cx,
-                                                       cy,
-                                                       r,
-                                                       direction,
-                                                       thetai,
-                                                       thetaf)
+             'radius': scipy.random.random(),
+             'distance': 1.}
+    for j in range(iteration_count):
+        arc(state)
+        state.update(line(state))
+        dist = compute_next_line()
+        state.update(compute_next_arc(state))
 
 
-def nextarc(cx, cy, r, direction, thetai, thetaf):
-        #sign randomly is 1 or -1.  if sign==1,
+def normalize_angle(angle):
+    """put angle in the range 0 to 2*pi"""
+    normalized_angle = scipy.fmod(angle, 2.*scipy.pi)
+    if normalized_angle < 0.:
+        normalized_angle += 2.*scipy.pi
+    return normalized_angle
+
+
+def get_random_plus_or_minus_one():
+    return scipy.random.randint(2)*2 - 1
+
+
+def compute_random_radius():
+    minimum_radius = 0.2
+    radius_scaling_factor = 0.2
+    radius = scipy.random.random()*radius_scaling_factor + minimum_radius
+    return radius
+
+
+def compute_next_arc(state):
+        #sign randomly is 1 or -1.  if sign == 1,
         #next circle's center is on convex side of
         #current circle, else next center is
         #on concave side of current circle
-        sign = scipy.random.randint(2)*2 - 1
-        #sign = 1
-        direction = -direction*sign
-        #new thetai is on opposite side of circle from thetaf
+        sign = get_random_plus_or_minus_one()
+        direction = -state['direction']*sign
+        #new start_angle is on opposite side of circle from previous start_angle
         if (sign == 1):
-            thetai = thetaf + scipy.pi
+            angle_start = state['end_angle'] + scipy.pi
         else:
-            thetai = thetaf
-        #put thetai in the range 0<thetai<2pi
-        thetai = scipy.fmod(thetai, 2.*scipy.pi)
-        if thetai < 0.:
-            thetai += 2.*scipy.pi
-        rold = r
-        r = scipy.random.random()*0.2 + 0.2
-        cx += (sign*r + rold)*scipy.cos(thetaf)
-        cy += (sign*r + rold)*scipy.sin(thetaf)
-        thetaf = thetai + scipy.random.random()*2.*scipy.pi
-        return cx, cy, r, direction, thetai, thetaf
+            angle_start = state['end_angle']
+        angle_start = normalize_angle(angle_start)
+        old_radius = state['radius']
+        new_radius = compute_random_radius()
+        new_x_center = state['x_center'] + (sign*new_radius + old_radius)*scipy.cos(state['end_angle'])
+        new_y_center = state['y_center'] + (sign*new_radius + old_radius)*scipy.sin(state['end_angle'])
+        angle_end = angle_start + scipy.random.random()*2.*scipy.pi
+        return {'x_center': new_x_center,
+                'y_center': new_y_center,
+                'radius': new_radius,
+                'direction': direction,
+                'start_angle': angle_start,
+                'end_angle': angle_end}
 
 
 #return arc points specified by present state
 #precondition: if direction != -1 (clockwise arc),
 #then thetai < thetaf.
-#pointdens is a positive real number.
 #postcondition: direction==-1 for a clockwise arc,
 #else anti-clockwise arc is produced.
-def arc(cx, cy, r, direction, thetai, thetaf, pointdens=3):
-    tf = thetaf
-    if (direction == -1) and (thetai < thetaf):
-        tf -= 2.*scipy.pi
-    np = int(abs(tf - thetai)*pointdens)
-    for i in range(np):
-        ang = (tf - thetai)*float(i)/float(np) + thetai
-        print("%f %f" % (r*scipy.cos(ang) + cx, r*scipy.sin(ang) + cy))
+def arc(state, point_density=3):
+    directed_angle = compute_directed_angle(state)
+    generate_points_along_arc(state, point_density, directed_angle)
 
-def nextline():
-    return scipy.random.random()*1.0 + 0.3
 
-#precondition: dist>0
-def line(cx, cy, r, direction, thetaf, dist, pointdens=4):
-    np = int(dist*pointdens)
-    x0 = r*scipy.cos(thetaf) + cx
-    y0 = r*scipy.sin(thetaf) + cy
+def compute_directed_angle(state):
+    directed_angle = state['end_angle'] - state['start_angle']
+    if ((state['direction'] == -1) and
+        (state['start_angle'] < state['end_angle'])):
+        directed_angle -= 2.*scipy.pi
+    return directed_angle
+
+
+def generate_points_along_arc(state, point_density, tf):
+    np = int(abs(tf)*point_density)
     for i in range(np):
-        print("%f %f" % (x0 -
-        direction*dist*float(i)/float(np)*scipy.sin(thetaf), y0 +
-        direction*dist*float(i)/float(np)*scipy.cos(thetaf)))
-    return cx - direction*dist*scipy.sin(thetaf), cy + direction*dist*scipy.cos(thetaf)
+        ang = (tf*float(i)/float(np) + state['start_angle'])
+        print("{x_coordinate} {y_coordinate}".format(
+                x_coordinate=state['radius']*scipy.cos(ang) + state['x_center'],
+                y_coordinate=state['radius']*scipy.sin(ang) + state['y_center']))
+
+
+def compute_next_line():
+    minimum_line_distance = 0.3
+    line_scale_factor = 1.0
+    return scipy.random.random()*line_scale_factor + minimum_line_distance
+
+
+def line(state, point_density=4):
+    start_x = state['radius']*scipy.cos(state['end_angle']) + state['x_center']
+    start_y = state['radius']*scipy.sin(state['end_angle']) + state['y_center']
+    generate_points_along_line(state, point_density, start_x, start_y)
+    return {'x_center': state['x_center'] -
+            state['direction']*state['distance']*scipy.sin(state['end_angle']),
+            'y_center': state['y_center'] +
+            state['direction']*state['distance']*scipy.cos(state['end_angle'])}
+
+
+def generate_points_along_line(state, point_density, start_x, start_y):
+    np = int(state['distance']*point_density)
+    for i in range(np):
+        iteration_scale_factor = state['direction']*state['distance']*float(i)/float(np)
+        print("{x_coordinate} {y_coordinate}".format(
+            x_coordinate=start_x - iteration_scale_factor*scipy.sin(state['end_angle']),
+            y_coordinate=start_y + iteration_scale_factor*scipy.cos(state['end_angle'])))
+
 
 def main():
     scipy.random.seed(int(sys.argv[1]));
-    aa()
+    curve_generator()
 
 
 if __name__ == '__main__':
