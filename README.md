@@ -15,7 +15,7 @@ I like procedural art. Someone once told me that every curve could be expressed 
 -----------------------
 Prerequistes
 -----------------------
-   python 3.4+
+   python 3.3+ (run script requires python3's `venv` module)
    
    gnuplot (to visualize the output)
 
