@@ -16,6 +16,7 @@ I like procedural art. Someone once told me that every curve could be expressed 
 Prerequistes
 -----------------------
    python 3.4+
+   
    gnuplot (to visualize the output)
 
 
