@@ -45,13 +45,8 @@ def compute_point_on_circle(x_center, y_center, radius, angle, y_radius_sign=1.)
 
 
 def compute_next_arc(state):
-    #sign randomly is 1 or -1.  if sign == 1,
-    #next circle's center is on convex side of
-    #current circle, else next center is
-    #on concave side of current circle
     sign = get_random_plus_or_minus_one()
     direction = -state['direction']*sign
-    #new start_angle is on opposite side of circle from previous start_angle
     if (sign == 1):
         angle_start = state['end_angle'] + scipy.pi
     else:
@@ -72,11 +67,6 @@ def compute_next_arc(state):
             'end_angle': angle_end}
 
 
-#return arc points specified by present state
-#precondition: if direction != -1 (clockwise arc),
-#then thetai < thetaf.
-#postcondition: direction==-1 for a clockwise arc,
-#else anti-clockwise arc is produced.
 def arc(state, point_density=3):
     directed_angle = compute_directed_angle(state)
     generate_points_along_arc(state, point_density, directed_angle)
@@ -84,8 +74,7 @@ def arc(state, point_density=3):
 
 def compute_directed_angle(state):
     directed_angle = state['end_angle'] - state['start_angle']
-    if ((state['direction'] == -1) and
-        (state['start_angle'] < state['end_angle'])):
+    if ((state['direction'] == -1) and (state['start_angle'] < state['end_angle'])):
         directed_angle -= 2.*scipy.pi
     return directed_angle
 
@@ -110,8 +99,10 @@ def compute_next_line():
 
 
 def line(state, point_density=4):
-    start_x = state['radius']*scipy.cos(state['end_angle']) + state['x_center']
-    start_y = state['radius']*scipy.sin(state['end_angle']) + state['y_center']
+    start_x, start_y = compute_point_on_circle(state['x_center'],
+                                               state['y_center'],
+                                               state['radius'],
+                                               state['end_angle'])
     generate_points_along_line(state, point_density, start_x, start_y)
     end_y, end_x = compute_point_on_circle(state['y_center'],
                                     state['x_center'],
