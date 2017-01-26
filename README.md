@@ -29,7 +29,9 @@ How to run
     cd arc-attack.git
     bash run.sh
 
-run.sh can be edited to change the seed used by the pseudorandom number generator. Try different seeds. Find a resulting curve that you like.
+run.sh can be given an optional random seed for use by the pseudorandom number generator. Try different seeds. Find a resulting curve that you like. For example,
+
+    bash run.sh 656354
 
 ![](arc_attack_b.png)
 
