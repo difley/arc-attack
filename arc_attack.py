@@ -4,7 +4,7 @@ import sys
 
 
 def curve_generator():
-    iteration_count = 20
+    iteration_count = 100
     state = {'x_center': 0.,
              'y_center': 0.,
              'direction': 1,
@@ -12,11 +12,12 @@ def curve_generator():
              'end_angle': 9.*scipy.pi/5.,
              'radius': scipy.random.random(),
              'distance': 1.}
-    for j in range(iteration_count):
-        arc(state)
-        state.update(line(state))
-        dist = compute_next_line()
+    for iteration in range(iteration_count):
+        yield generate_points_along_arc(state)
+        yield generate_points_along_line(state)
+        state.update(compute_line_segment_end(state))
         state.update(compute_next_arc(state))
+        state.update(compute_next_line())
 
 
 def normalize_angle(angle):
@@ -33,7 +34,7 @@ def get_random_plus_or_minus_one():
 
 def compute_random_radius():
     minimum_radius = 0.2
-    radius_scaling_factor = 0.2
+    radius_scaling_factor = 0.3
     radius = scipy.random.random()*radius_scaling_factor + minimum_radius
     return radius
 
@@ -67,11 +68,6 @@ def compute_next_arc(state):
             'end_angle': angle_end}
 
 
-def arc(state, point_density=3):
-    directed_angle = compute_directed_angle(state)
-    generate_points_along_arc(state, point_density, directed_angle)
-
-
 def compute_directed_angle(state):
     directed_angle = state['end_angle'] - state['start_angle']
     if ((state['direction'] == -1) and (state['start_angle'] < state['end_angle'])):
@@ -79,23 +75,23 @@ def compute_directed_angle(state):
     return directed_angle
 
 
-def generate_points_along_arc(state, point_density, directed_angle):
+def generate_points_along_arc(state, point_density=3):
+    directed_angle = compute_directed_angle(state)
     point_count = int(abs(directed_angle)*point_density)
-    for i in range(point_count):
-        angle = (directed_angle*float(i)/float(point_count) + state['start_angle'])
+    for counter in range(point_count):
+        angle = (directed_angle*float(counter)/float(point_count) + state['start_angle'])
         x_coordinate, y_coordinate = compute_point_on_circle(state['x_center'],
                                                              state['y_center'],
                                                              state['radius'],
                                                              angle)
-        print("{x_coordinate} {y_coordinate}".format(
-                x_coordinate=x_coordinate,
-                y_coordinate=y_coordinate))
+        yield x_coordinate, y_coordinate
 
 
 def compute_next_line():
     minimum_line_distance = 0.3
     line_scale_factor = 1.0
-    return scipy.random.random()*line_scale_factor + minimum_line_distance
+    line_distance = scipy.random.random()*line_scale_factor + minimum_line_distance
+    return {'distance': line_distance}
 
 
 def line(state, point_density=4):
@@ -103,35 +99,55 @@ def line(state, point_density=4):
                                                state['y_center'],
                                                state['radius'],
                                                state['end_angle'])
-    generate_points_along_line(state, point_density, start_x, start_y)
+    yield generate_points_along_line(state, point_density, start_x, start_y)
+
+
+def compute_line_segment_end(state):
     end_y, end_x = compute_point_on_circle(state['y_center'],
-                                    state['x_center'],
-                                    state['direction']*state['distance'],
-                                    state['end_angle'],
-                                    y_radius_sign=-1.
-                                    )
+                                           state['x_center'],
+                                           state['direction']*state['distance'],
+                                           state['end_angle'],
+                                           y_radius_sign=-1.)
     return {'x_center': end_x,
             'y_center': end_y}
 
 
-def generate_points_along_line(state, point_density, start_x, start_y):
+def generate_points_along_line(state, point_density=4):
+    start_x, start_y = compute_point_on_circle(state['x_center'],
+                                               state['y_center'],
+                                               state['radius'],
+                                               state['end_angle'])
     point_count = int(state['distance']*point_density)
-    for i in range(point_count):
-        iteration_scale_factor = state['direction']*state['distance']*float(i)/float(point_count)
+    for counter in range(point_count):
+        iteration_scale_factor = state['direction']*state['distance']*float(counter)/float(point_count)
         y_coordinate, x_coordinate = compute_point_on_circle(start_y,
                                                              start_x,
                                                              iteration_scale_factor,
                                                              state['end_angle'],
                                                              y_radius_sign=-1.)
-        print("{x_coordinate} {y_coordinate}".format(
-            x_coordinate=x_coordinate,
-            y_coordinate=y_coordinate
-        ))
+        yield x_coordinate, y_coordinate
+
+
+def print_coordinate_pair(x_coordinate, y_coordinate):
+    print("{x_coordinate} {y_coordinate}".format(
+        x_coordinate=x_coordinate,
+        y_coordinate=y_coordinate
+    ))
+
+
+def set_seed_from_argv_or_default():
+    if (sys.argv[1]).isdigit():
+        seed = int(sys.argv[1])
+    else:
+        seed = 4455582
+    scipy.random.seed(seed);
 
 
 def main():
-    scipy.random.seed(int(sys.argv[1]));
-    curve_generator()
+    set_seed_from_argv_or_default()
+    for curve_segment in curve_generator():
+        for x_coordinate, y_coordinate in curve_segment:
+            print_coordinate_pair(x_coordinate, y_coordinate)
 
 
 if __name__ == '__main__':
