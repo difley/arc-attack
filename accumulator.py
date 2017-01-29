@@ -1,5 +1,5 @@
 import scipy
-import arc_attack as curve
+import basic_api
 
 
 class SampleAccumulator(object):
@@ -21,8 +21,8 @@ class SampleAccumulator(object):
 
 
     def _line(self, origin, tangent_angle, distance):
-        parametrized_function = curve.generate_parametrized_line(origin, tangent_angle, distance)
-        self.samples.append(curve.sampler(parametrized_function, 0.0, 1.0,
+        parametrized_function = basic_api.generate_parametrized_line(origin, tangent_angle, distance)
+        self.samples.append(basic_api.sampler(parametrized_function, 0.0, 1.0,
                                      self.config['line_sample_count']))
         end_point = parametrized_function(1.0)
         return {'point': end_point,
@@ -31,8 +31,8 @@ class SampleAccumulator(object):
 
     def _arc(self, radius, central_angle, clockwise,
                       start_point, start_tangent_angle):
-        start_angle = curve.normalize_angle(
-                          curve.get_radial_angle_from_arc_tangent(start_tangent_angle,
+        start_angle = basic_api.normalize_angle(
+                          basic_api.get_radial_angle_from_arc_tangent(start_tangent_angle,
                                                                   clockwise))
         if not clockwise:
             stop_angle = start_angle + central_angle
@@ -40,13 +40,13 @@ class SampleAccumulator(object):
             stop_angle = start_angle - central_angle
         angles = {'start': start_angle,
                   'stop': stop_angle}
-        center = curve.get_arc_center(start_point, radius, start_angle)
-        parametrized_function = curve.generate_parametrized_arc(center, angles, radius)
-        self.samples.append(curve.sampler(parametrized_function, 0.0, 1.0,
+        center = basic_api.get_arc_center(start_point, radius, start_angle)
+        parametrized_function = basic_api.generate_parametrized_arc(center, angles, radius)
+        self.samples.append(basic_api.sampler(parametrized_function, 0.0, 1.0,
                                      self.config['arc_sample_count']))
         end_point = parametrized_function(1.0)
-        tangent_angle = curve.normalize_angle(
-                      curve.get_arc_tangent_angle_from_radial_angle(angles['stop'],
+        tangent_angle = basic_api.normalize_angle(
+                      basic_api.get_arc_tangent_angle_from_radial_angle(angles['stop'],
                                                                     clockwise))
         return {'point': end_point,
                 'angle': tangent_angle}
