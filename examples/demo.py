@@ -1,10 +1,10 @@
 import scipy
-from arc_attack import write_samples_to_file
+from simple_api import write_samples_to_file
 from accumulator import SampleAccumulator
 
 
 def main():
-    data_filename = 'output.out'
+    data_filename = 'demo.out'
     accumulator = SampleAccumulator({'x': 0.0, 'y': 0.0},
                                       scipy.pi*3./2.,
                                       {'line_sample_count': 2,
