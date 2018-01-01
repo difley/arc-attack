@@ -7,8 +7,7 @@ class TestSampleAccumulator(unittest.TestCase):
     def test_sample_acculumator(self):
         accumulator = SampleAccumulator({'x': 0.0, 'y': 0.0},
                                          scipy.pi*3./2.,
-                                         {'line_sample_count': 2,
-                                         'arc_sample_count': 10})
+                                         arc_sample_count=10)
         accumulator.add_sample('line', {'distance': 1.0})
         accumulator.add_sample('arc', {'radius': 1.0,
                                        'central_angle': scipy.pi,

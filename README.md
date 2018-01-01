@@ -8,7 +8,7 @@ A pseudorandom, procedural art generator. Arcs and line segments team up to gene
 -----------------------
 Motivation for doing this
 -----------------------
-I like procedural art. Someone once told me that every curve could be expressed as a collection of circles and line segments. I created this program to explore the universe of circles and line segments.
+I'm fascinated with procedural art and computational geometry. I wrote this program to explore how circular arcs and line segments can be joined together to generate a pleasing curve.
 
 ![Example output from program (rendered with Gnuplot)](images/4455561.png)
 
@@ -26,7 +26,7 @@ Prerequistes
 How to run
 -----------------------
     git clone https://github.org/difley/arc-attack.git
-    cd arc-attack.git
+    cd arc_attack/examples/wavy_polygon
     bash run.sh
 
 run.sh can be given an optional random seed for use by the pseudorandom number generator. Try different seeds. Find a resulting curve that you like. For example,

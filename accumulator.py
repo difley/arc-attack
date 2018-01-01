@@ -3,15 +3,16 @@ import basic_api
 
 
 class SampleAccumulator(object):
-    def __init__(self, start_point, tangent_angle, config):
+    def __init__(self, start_point, tangent_angle,
+                 arc_sample_count=2, allow_intersections=True):
         self.__samples = []
         self.__state = {'point': start_point,
                         'angle': tangent_angle}
-        self.__config = config
+        self.__arc_sample_count=arc_sample_count
+        self.__allow_intersections=allow_intersections
 
 
     def add_sample(self, sample_type, parameters):
-        allow_intersections = self.__config.get('allow_intersections', True)
         if sample_type == 'line':
             proposed_state = self._line(self.__state['point'], self.__state['angle'],
                                         parameters['distance'])
@@ -23,8 +24,8 @@ class SampleAccumulator(object):
             raise ValueError("sample_type must be 'line' or 'arc'")
         parametrized_function = proposed_state['function']
         candidate = basic_api.sampler(parametrized_function, 0.0, 1.0,
-                                   self.__config['arc_sample_count'])
-        if allow_intersections or basic_api.is_sample_acceptable(self.__samples, candidate):
+                                      self.__arc_sample_count)
+        if self.__allow_intersections or basic_api.is_sample_acceptable(self.__samples, candidate):
             self.__state = {'angle': proposed_state['angle']}
             self.__state['point'] = parametrized_function(1.0)
             self.__state['sample'] = candidate

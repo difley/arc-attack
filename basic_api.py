@@ -19,13 +19,18 @@ def generate_parametrized_arc(center, angles, radius):
     return parametrized_arc
 
 
+#Given a point on the arc, the angle of the point relative to
+#the center of the arc, and the radius of the arc,
+#find the center of the arc.
 def get_arc_center(point, radius, angle):
     center_x = point['x'] - radius*scipy.cos(angle)
     center_y = point['y'] - radius*scipy.sin(angle)
-    return {'x': center_x,
-            'y': center_y}
+    return {'x': center_x, 'y': center_y}
 
 
+#The radial angles oriented away from the center of the arc is
+#offset by 90 degrees from the direction of the tangent and
+#is dependent on the direction of the arc.
 def get_radial_angle_from_arc_tangent(tangent_angle, clockwise=False):
     if clockwise:
         angle = tangent_angle + scipy.pi/2.
@@ -34,6 +39,7 @@ def get_radial_angle_from_arc_tangent(tangent_angle, clockwise=False):
     return angle
 
 
+#The inverse function of get_radial_angle_from_arc_tangent
 def get_arc_tangent_angle_from_radial_angle(radial_angle, clockwise=False):
     if clockwise:
         angle = radial_angle - scipy.pi/2.
@@ -56,19 +62,13 @@ def determinant(point_a, point_b, point_c):
 def is_intersection(point_a, point_b, point_c, point_d):
     det_abc = determinant(point_a, point_b, point_c)
     det_abd = determinant(point_a, point_b, point_d)
-    if det_abc*det_abd > 0.:
+    if det_abc*det_abd >= 0.:
         return False
     det_cda = determinant(point_c, point_d, point_a)
     det_cdb = determinant(point_c, point_d, point_b)
-    if det_cda*det_cdb > 0.:
+    if det_cda*det_cdb >= 0.:
         return False
     return True
-
-
-def get_first_last_points(sample):
-    if len(sample) < 2:
-        raise ValueError
-    return sample[0], sample[-1]
 
 
 def get_consecutive_points_from_sample(sample):
@@ -81,14 +81,12 @@ def get_consecutive_points_from_sample(sample):
 def is_sample_acceptable(samples, candidate):
     if len(samples) < 2:
         return True
-    point_c, point_d = get_first_last_points(candidate)
-    #do not compare samples[:-1] to candidate because
-    #consecutive samples will intersect by construction
-    for sample in samples[:-1]:
-        for point_a, point_b in get_consecutive_points_from_sample(sample):
-            if is_intersection(point_a, point_b,
-                               point_c, point_d):
-                return False
+    for point_c, point_d in get_consecutive_points_from_sample(candidate):
+        for sample in samples[:-1]:
+            for point_a, point_b in get_consecutive_points_from_sample(sample):
+                if is_intersection(point_a, point_b,
+                                   point_c, point_d):
+                    return False
     return True
 
 
