@@ -50,11 +50,11 @@ How to run the examples
 -----------------------
 Five examples are provided in the examples/ folder. To run the wavy polygon example, use these commands in the shell:
         
-    git clone https://github.org/difley/arc-attack.git
-    cd arc_attack/examples/wavy_polygon
-    bash run.sh
+    git clone git@github.com:difley/arc-attack.git
+    cd arc-attack
+    bash examples/wavy_polygon/run.sh
 
 
-The other four examples can be run analogously by browsing to each of the corresponding example folders and running:
+The other four examples can be run analogously. For example, the spiral example can be run from the clone root folder with:
 
-    bash run.sh 
+    bash examples/spiral/run.sh
