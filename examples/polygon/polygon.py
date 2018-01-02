@@ -7,8 +7,7 @@ from accumulator import SampleAccumulator
 def build_poly(side_count, corner_radius):
     accumulator = SampleAccumulator({'x': 0.0, 'y': 0.0},
                                      0.0,
-                                     {'line_sample_count': 2,
-                                     'arc_sample_count': 20})
+                                     arc_sample_count=20)
     for counter in range(side_count):
         accumulator.add_sample('line', {'distance': 1.})
         accumulator.add_sample('arc', {'radius': float(corner_radius),
