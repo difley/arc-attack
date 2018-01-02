@@ -1,4 +1,4 @@
-config = {'data_filename': 'output.out',
+config = {'data_filename': 'random_curve_overlapping.out',
           'starting_point': {'x': 0.0, 'y': 0.0},
           'starting_tangent_angle': 0.0,
           'arc_sample_count': 10,
