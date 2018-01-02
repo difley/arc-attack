@@ -36,7 +36,7 @@ Random curve (non-overlapping)
 
 
 -----------------------
-Prerequistes
+Prerequisites
 -----------------------
    python 3.3+ (run script requires python3's `venv` module)
    
