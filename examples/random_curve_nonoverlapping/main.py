@@ -1,4 +1,4 @@
-import config
+import examples.random_curve_nonoverlapping.config as config
 import random_path
 import sys
 
